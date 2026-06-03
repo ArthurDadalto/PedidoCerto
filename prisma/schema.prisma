@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Pedido {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fornecedor       String
+  cliente_nome     String
+  cliente_cnpj     String
+  cliente_telefone String
+  prazo_pagamento  String
+  itens            Json
+  data_criacao     DateTime @default(now())
+  contatado        Boolean  @default(false)
+  dias_follow_up   Int      @default(45)
+  data_emissao     DateTime @default(now())
+}

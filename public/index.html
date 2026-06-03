@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de Pedido</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --surface: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin: 0 0 30px 0;
+            line-height: 1.5;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.02);
+        }
+
+        .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.3s ease, transform 0.1s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        #file-name {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .result pre {
+            margin: 0;
+            font-family: monospace;
+            font-size: 13px;
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Análise de Pedido</h1>
+        <p>Faça o upload do seu PDF para extrair os dados via IA e salvar no banco Supabase.</p>
+
+        <form id="upload-form">
+            <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                <span class="icon">📄</span>
+                <span id="upload-text">Clique ou arraste o PDF aqui</span>
+                <span id="file-name"></span>
+            </div>
+            <input type="file" id="file-input" name="arquivo" accept="application/pdf">
+            
+            <button type="submit" class="btn" id="submit-btn" disabled>Processar PDF</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <span class="spinner"></span> Extraindo dados com Gemini...
+        </div>
+
+        <div class="result" id="result-container">
+            <p style="color: white; margin-bottom: 10px; font-weight: 600;">✅ Salvo com sucesso!</p>
+            <pre id="result-json"></pre>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const fileNameDisplay = document.getElementById('file-name');
+        const submitBtn = document.getElementById('submit-btn');
+        const uploadText = document.getElementById('upload-text');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('result-container');
+        const resultJson = document.getElementById('result-json');
+
+        // Handle file selection
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileNameDisplay.textContent = file.name;
+                uploadText.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Drag and drop effects
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
+            }
+        });
+
+        // Handle submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            
+            submitBtn.style.display = 'none';
+            loading.style.display = 'block';
+            resultContainer.style.display = 'none';
+
+            try {
+                const response = await fetch('/upload-pedido', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro desconhecido');
+                }
+
+                resultJson.textContent = JSON.stringify(data, null, 2);
+                resultContainer.style.display = 'block';
+
+            } catch (error) {
+                alert('Erro: ' + error.message);
+            } finally {
+                submitBtn.style.display = 'block';
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

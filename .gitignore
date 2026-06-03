@@ -1,0 +1,31 @@
+# Node.js e dependências
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Variáveis de Ambiente / Credenciais
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
+
+# Pastas de Build / Deploy do Frontend e Backend
+dist/
+build/
+out/
+.next/
+
+# Banco de dados e logs
+*.sqlite
+*.sqlite3
+*.log
+
+# Arquivos de sistema operacional (Mac/Windows)
+.DS_Store
+Thumbs.db
+
+# Chaves / Secrets
+*.pem
+*.key
