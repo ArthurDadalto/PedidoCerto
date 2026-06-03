@@ -50,7 +50,8 @@ export default function UploadPedido() {
     formData.append('dias_follow_up', diasFollowUp);
 
     try {
-      const response = await fetch('http://localhost:3000/upload-pedido', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_URL}/upload-pedido`, {
         method: 'POST',
         headers: {
           'Authorization': localStorage.getItem('senha_mestra')

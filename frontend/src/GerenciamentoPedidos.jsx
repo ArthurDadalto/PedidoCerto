@@ -24,7 +24,8 @@ export default function GerenciamentoPedidos() {
 
   const carregarPedidos = () => {
     setIsLoading(true);
-    fetch('http://localhost:3000/pedidos', {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    fetch(`${API_URL}/pedidos`, {
       headers: {
         'Authorization': localStorage.getItem('senha_mestra')
       }
@@ -41,7 +42,8 @@ export default function GerenciamentoPedidos() {
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este pedido definitivamente?')) {
       try {
-        const res = await fetch(`http://localhost:3000/pedidos/${id}`, { 
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const res = await fetch(`${API_URL}/pedidos/${id}`, { 
           method: 'DELETE',
           headers: {
             'Authorization': localStorage.getItem('senha_mestra')
@@ -101,7 +103,8 @@ export default function GerenciamentoPedidos() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await fetch(`http://localhost:3000/pedidos/${pedidoEditando.id}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${API_URL}/pedidos/${pedidoEditando.id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

@@ -7,7 +7,8 @@ export default function DisparosDoDia() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:3000/pedidos-pendentes', {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    fetch(`${API_URL}/pedidos-pendentes`, {
       headers: {
         'Authorization': localStorage.getItem('senha_mestra')
       }
@@ -40,7 +41,8 @@ export default function DisparosDoDia() {
 
     try {
       // Faz o PUT para o backend marcar como contatado
-      const res = await fetch(`http://localhost:3000/pedido-contatado/${pedido.id}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${API_URL}/pedido-contatado/${pedido.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': localStorage.getItem('senha_mestra')

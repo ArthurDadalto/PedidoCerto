@@ -13,9 +13,10 @@ function App() {
   useEffect(() => {
     const verificarSenha = async () => {
       const senhaSalva = localStorage.getItem('senha_mestra');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       if (senhaSalva) {
         try {
-          const response = await fetch('http://localhost:3000/verificar-senha', {
+          const response = await fetch(`${API_URL}/verificar-senha`, {
             headers: { 'Authorization': senhaSalva }
           });
           if (response.ok) {
